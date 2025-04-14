@@ -2,7 +2,7 @@
 
 I'm learning JavaScript, React, Vue, Svelte, and Node From JavaScript All-in-One For Dummies by Chris Minnick
 
-A starter program for writing Javascript games
+A starter program for writing Javascript games for fun
 
 \*\* Usage
 
