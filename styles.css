@@ -1,28 +1,22 @@
 /* BALL STYLING */
 #ball {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ff4c4c, #a80000);
-  border: 3px solid #222;
+  width: 80px;
+  height: 80px;
   position: absolute;
   top: 100px;
   left: 100px;
-  box-shadow:
-    inset -5px -5px 10px rgba(255, 255, 255, 0.2),
-    inset 5px 5px 10px rgba(0, 0, 0, 0.3),
-    0 0 10px rgba(255, 0, 0, 0.4);
+  border-radius: 50%;
+  object-fit: cover;
   transition: top 0.2s ease, left 0.2s ease;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
 }
+
+
 
 /* SPIN ANIMATION */
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .spin {
