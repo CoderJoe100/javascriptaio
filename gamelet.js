@@ -5,9 +5,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const step = 10;
 
   function refresh() {
-    ball.style.left = x + "px";
-    ball.style.top = y + "px";
+    ball.style.left = x + "px"; // Move it horizontally (left)
+    ball.style.top = y + "px"; // Move it vertically (top)
   }
+  // Call refresh right away to place the ball at (100px, 100px) before any keys are pressed
+  refresh();
 
   function spinBall() {
     ball.classList.add("spin");
