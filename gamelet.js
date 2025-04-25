@@ -1,19 +1,34 @@
-const ball = document.getElementById("ball");
-document.addEventListener("keydown", handleKeyPress);
-let position = 0;
-
-function handleKeyPress(e) {
-  if (e.code === "ArrowLeft") {
-    position = position - 10;
-  }
-  if (e.code === "ArrowRight") {
-    position = position + 10;
-  }
-  if (position < 0) {
-    position = 0;
-  }
-  refresh();
-}
 function refresh() {
-  ball.style.left = position + "px";
+  ball.style.left = x + "px";
+  ball.style.top = y + "px";
 }
+
+function spinBall() {
+  ball.classList.add("spin");
+  setTimeout(() => {
+    ball.classList.remove("spin");
+  }, 600); // must match animation duration
+}
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "ArrowUp") {
+    y -= step;
+    refresh();
+    spinBall();
+  }
+  if (event.key === "ArrowDown") {
+    y += step;
+    refresh();
+    spinBall();
+  }
+  if (event.key === "ArrowLeft") {
+    x -= step;
+    refresh();
+    spinBall();
+  }
+  if (event.key === "ArrowRight") {
+    x += step;
+    refresh();
+    spinBall();
+  }
+});
