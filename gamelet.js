@@ -4,12 +4,16 @@ document.addEventListener("DOMContentLoaded", function () {
   let y = 100;
   const step = 10;
 
+  // Get ball dimensions
+  const ballWidth = ball.offsetWidth;
+  const ballHeight = ball.offsetHeight;
+
   function refresh() {
-    ball.style.left = x + "px"; // Move it horizontally (left)
-    ball.style.top = y + "px"; // Move it vertically (top)
+    ball.style.left = x + "px";
+    ball.style.top = y + "px";
   }
-  // Call refresh right away to place the ball at (100px, 100px) before any keys are pressed
-  refresh();
+
+  refresh(); // Show initial position
 
   function spinBall() {
     ball.classList.add("spin");
@@ -19,22 +23,25 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   document.addEventListener("keydown", function (event) {
-    if (event.key === "ArrowUp") {
+    const maxX = window.innerWidth - ballWidth;
+    const maxY = window.innerHeight - ballHeight;
+
+    if (event.key === "ArrowUp" && y - step >= 0) {
       y -= step;
       refresh();
       spinBall();
     }
-    if (event.key === "ArrowDown") {
+    if (event.key === "ArrowDown" && y + step <= maxY) {
       y += step;
       refresh();
       spinBall();
     }
-    if (event.key === "ArrowLeft") {
+    if (event.key === "ArrowLeft" && x - step >= 0) {
       x -= step;
       refresh();
       spinBall();
     }
-    if (event.key === "ArrowRight") {
+    if (event.key === "ArrowRight" && x + step <= maxX) {
       x += step;
       refresh();
       spinBall();
