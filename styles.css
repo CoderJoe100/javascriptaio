@@ -1,36 +1,41 @@
-canvas {
-  display: block;
-  background: #f2f2f2;
-  border: 1px solid #ccc;
-  margin: 0 auto;
-}
-
-/* D-Pad container */
-#dpad {
-  position: absolute;
-  bottom: 30px;
-  left: 30px;
+body {
+  margin: 0;
+  background: #f0f0f0;
+  font-family: Arial, sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
 }
 
-/* Row for left, down, right */
+canvas {
+  border: 2px solid #ccc;
+  margin-top: 20px;
+}
+
+#dpad {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .middle-row {
   display: flex;
   gap: 10px;
+  margin-top: 5px;
 }
 
-/* Buttons for movement */
-#dpad button {
+button {
   width: 50px;
   height: 50px;
-  font-size: 20px;
-  border: none;
-  border-radius: 10px;
-  background: #2196f3;
+  font-size: 24px;
+  background: #007bff;
   color: white;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+}
+
+button:active {
+  background: #0056b3;
 }

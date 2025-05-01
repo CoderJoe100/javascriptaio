@@ -112,10 +112,6 @@ function draw() {
   }
 }
 
-// Touch movement (WASD-style buttons)
-document.getElementById("up").addEventListener("click", () => (humanY -= 10));
-document.getElementById("down").addEventListener("click", () => (humanY += 10));
-document.getElementById("left").addEventListener("click", () => (humanX -= 10));
 document
   .getElementById("right")
   .addEventListener("click", () => (humanX += 10));
