@@ -1,44 +1,43 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+// World size
 const worldWidth = 2000;
 const worldHeight = 2000;
 
-let humanX = 1200;
-let humanY = 1000;
-
+// Game objects and movement
 let ballX = 1000;
 let ballY = 1000;
-
-let towerX = 1400;
-let towerY = 1000;
-
-const towerRadius = 30;
-let showMessage = false;
-
 const radius = 20;
 const speed = 5;
-
 let hoverOffset = 0;
 let hoverDirection = 1;
 
+// Camera
 let cameraX = 0;
 let cameraY = 0;
+
+// Touch-based movement flags
+let movingUp = false;
+let movingDown = false;
+let movingLeft = false;
+let movingRight = false;
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Hover animation
+  // Hover effect
   if (hoverOffset > 5) hoverDirection = -1;
   if (hoverOffset < -5) hoverDirection = 1;
   hoverOffset += hoverDirection * 0.2;
 
-  // Ball follows human
-  const followSpeed = 0.05;
-  ballX += (humanX - ballX) * followSpeed;
-  ballY += (humanY - ballY) * followSpeed;
+  // Movement
+  if (movingUp) ballY -= speed;
+  if (movingDown) ballY += speed;
+  if (movingLeft) ballX -= speed;
+  if (movingRight) ballX += speed;
 
-  // Camera follows ball (edges only)
+  // Camera tracking
   const edgeMargin = 100;
   if (ballX - cameraX < edgeMargin) cameraX = ballX - edgeMargin;
   if (ballX - cameraX > canvas.width - edgeMargin)
@@ -47,56 +46,7 @@ function draw() {
   if (ballY - cameraY > canvas.height - edgeMargin)
     cameraY = ballY - (canvas.height - edgeMargin);
 
-  // Draw human (blue)
-  ctx.beginPath();
-  ctx.arc(humanX - cameraX, humanY - cameraY, 25, 0, Math.PI * 2);
-  ctx.fillStyle = "blue";
-  ctx.fill();
-  ctx.closePath();
-
-  // Check distance to tower
-  const dx = ballX - towerX;
-  const dy = ballY - towerY;
-  const distance = Math.sqrt(dx * dx + dy * dy);
-  showMessage = distance < 80;
-
-  // Draw glow aura around AI
-  ctx.beginPath();
-  ctx.arc(
-    ballX - cameraX,
-    ballY - cameraY + hoverOffset,
-    radius + 10,
-    0,
-    Math.PI * 2
-  );
-  ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
-  ctx.fill();
-  ctx.closePath();
-
-  // Draw AI ball (red)
-  ctx.beginPath();
-  ctx.arc(
-    ballX - cameraX,
-    ballY - cameraY + hoverOffset,
-    radius,
-    0,
-    Math.PI * 2
-  );
-  ctx.fillStyle = "red";
-  ctx.fill();
-  ctx.closePath();
-
-  // Draw AI name above ball
-  ctx.fillStyle = "black";
-  ctx.font = "14px sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText(
-    "ARC-7",
-    ballX - cameraX,
-    ballY - cameraY + hoverOffset - radius - 10
-  );
-
-  // Grid lines (optional visual)
+  // Grid
   ctx.strokeStyle = "#ccc";
   for (let x = 0; x < worldWidth; x += 100) {
     ctx.beginPath();
@@ -110,10 +60,56 @@ function draw() {
     ctx.lineTo(worldWidth - cameraX, y - cameraY);
     ctx.stroke();
   }
+
+  // Draw ARC-7
+  ctx.beginPath();
+  ctx.arc(
+    ballX - cameraX,
+    ballY - cameraY + hoverOffset,
+    radius,
+    0,
+    Math.PI * 2
+  );
+  ctx.fillStyle = "red";
+  ctx.fill();
+  ctx.closePath();
+
+  ctx.fillStyle = "black";
+  ctx.font = "12px Arial";
+  ctx.fillText(
+    "ARC-7",
+    ballX - cameraX - 18,
+    ballY - cameraY + hoverOffset - 30
+  );
 }
+
+setInterval(draw, 16);
+
+// Touch listeners
+document
+  .getElementById("up")
+  .addEventListener("touchstart", () => (movingUp = true));
+document
+  .getElementById("up")
+  .addEventListener("touchend", () => (movingUp = false));
+
+document
+  .getElementById("down")
+  .addEventListener("touchstart", () => (movingDown = true));
+document
+  .getElementById("down")
+  .addEventListener("touchend", () => (movingDown = false));
+
+document
+  .getElementById("left")
+  .addEventListener("touchstart", () => (movingLeft = true));
+document
+  .getElementById("left")
+  .addEventListener("touchend", () => (movingLeft = false));
 
 document
   .getElementById("right")
-  .addEventListener("click", () => (humanX += 10));
-
-setInterval(draw, 16); // 60 FPS
+  .addEventListener("touchstart", () => (movingRight = true));
+document
+  .getElementById("right")
+  .addEventListener("touchend", () => (movingRight = false));
