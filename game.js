@@ -1,3 +1,4 @@
+// game.js
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -6,21 +7,19 @@ const worldHeight = 2000;
 
 let ballX = 1000;
 let ballY = 1000;
-let cameraX = 0;
-let cameraY = 0;
-
 const radius = 20;
-const speed = 3;
+const speed = 2;
 
 let hoverOffset = 0;
 let hoverDirection = 1;
-let glowPulse = 0;
-let glowDirection = 1;
 
-let moveUp = false;
-let moveDown = false;
-let moveLeft = false;
-let moveRight = false;
+let cameraX = 0;
+let cameraY = 0;
+
+let moveUp = false,
+  moveDown = false,
+  moveLeft = false,
+  moveRight = false;
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -30,28 +29,18 @@ function draw() {
   if (hoverOffset < -5) hoverDirection = 1;
   hoverOffset += hoverDirection * 0.2;
 
-  // Update glow pulse
-  if (glowPulse > 10) glowDirection = -1;
-  if (glowPulse < 0) glowDirection = 1;
-  glowPulse += glowDirection * 0.1;
-
   // Move ARC-7
   if (moveUp) ballY -= speed;
   if (moveDown) ballY += speed;
   if (moveLeft) ballX -= speed;
   if (moveRight) ballX += speed;
 
-  // Camera follows ball
-  const edgeMargin = 100;
-  if (ballX - cameraX < edgeMargin) cameraX = ballX - edgeMargin;
-  if (ballX - cameraX > canvas.width - edgeMargin)
-    cameraX = ballX - (canvas.width - edgeMargin);
-  if (ballY - cameraY < edgeMargin) cameraY = ballY - edgeMargin;
-  if (ballY - cameraY > canvas.height - edgeMargin)
-    cameraY = ballY - (canvas.height - edgeMargin);
+  // Camera follow
+  cameraX = ballX - canvas.width / 2;
+  cameraY = ballY - canvas.height / 2;
 
-  // Draw grid
-  ctx.strokeStyle = "#eee";
+  // Background grid
+  ctx.strokeStyle = "#ddd";
   for (let x = 0; x < worldWidth; x += 100) {
     ctx.beginPath();
     ctx.moveTo(x - cameraX, 0 - cameraY);
@@ -65,20 +54,20 @@ function draw() {
     ctx.stroke();
   }
 
-  // Draw glow
+  // Glow
   ctx.beginPath();
   ctx.arc(
     ballX - cameraX,
     ballY - cameraY + hoverOffset,
-    radius + 10 + glowPulse,
+    radius + 12,
     0,
     Math.PI * 2
   );
-  ctx.fillStyle = "rgba(255, 0, 0, 0.15)";
+  ctx.fillStyle = "rgba(0, 180, 255, 0.2)";
   ctx.fill();
   ctx.closePath();
 
-  // Draw ball
+  // ARC-7
   ctx.beginPath();
   ctx.arc(
     ballX - cameraX,
@@ -91,34 +80,39 @@ function draw() {
   ctx.fill();
   ctx.closePath();
 
-  // Label
   ctx.fillStyle = "black";
-  ctx.font = "12px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText("ARC-7", ballX - cameraX, ballY - cameraY + hoverOffset - 25);
+  ctx.font = "14px sans-serif";
+  ctx.fillText(
+    "ARC-7",
+    ballX - cameraX - 20,
+    ballY - cameraY + hoverOffset - 25
+  );
 }
 
 setInterval(draw, 16);
 
-// Touch D-pad controls
+// Touch controls
 document
   .getElementById("up")
   .addEventListener("touchstart", () => (moveUp = true));
 document
   .getElementById("up")
   .addEventListener("touchend", () => (moveUp = false));
+
 document
   .getElementById("down")
   .addEventListener("touchstart", () => (moveDown = true));
 document
   .getElementById("down")
   .addEventListener("touchend", () => (moveDown = false));
+
 document
   .getElementById("left")
   .addEventListener("touchstart", () => (moveLeft = true));
 document
   .getElementById("left")
   .addEventListener("touchend", () => (moveLeft = false));
+
 document
   .getElementById("right")
   .addEventListener("touchstart", () => (moveRight = true));
