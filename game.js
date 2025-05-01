@@ -12,14 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ball.style.top = y + "px";
   }
 
-  refresh(); // Show initial position
-
-  function spinBall() {
-    ball.classList.add("spin");
-    setTimeout(() => {
-      ball.classList.remove("spin");
-    }, 600);
-  }
+  refresh(); // Set initial ball position
 
   document.addEventListener("keydown", function (event) {
     const maxX = window.innerWidth - ballWidth;
@@ -28,22 +21,25 @@ document.addEventListener("DOMContentLoaded", function () {
     if (event.key === "ArrowUp" && y - step >= 0) {
       y -= step;
       refresh();
-      spinBall();
+      ball.classList.add("spin"); // Spin after moving up
     }
+
     if (event.key === "ArrowDown" && y + step <= maxY) {
       y += step;
       refresh();
-      spinBall();
+      ball.classList.add("spin"); // Spin after moving down
     }
+
     if (event.key === "ArrowLeft" && x - step >= 0) {
       x -= step;
       refresh();
-      spinBall();
+      ball.classList.add("spin"); // Spin after moving left
     }
+
     if (event.key === "ArrowRight" && x + step <= maxX) {
       x += step;
       refresh();
-      spinBall();
+      ball.classList.add("spin"); // Spin after moving right
     }
   });
 });
