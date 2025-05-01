@@ -12,6 +12,10 @@ const speed = 5;
 let hoverOffset = 0;
 let hoverDirection = 1;
 
+let auraRadius = radius + 10;
+let auraAlpha = 0.3;
+let auraGrowing = true;
+
 let cameraX = 0;
 let cameraY = 0;
 
@@ -22,7 +26,6 @@ let moving = {
   right: false,
 };
 
-// Continuous movement logic
 function updatePosition() {
   if (moving.up) ballY -= speed;
   if (moving.down) ballY += speed;
@@ -32,15 +35,25 @@ function updatePosition() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   updatePosition();
 
-  // Update hover
+  // Hover animation
   if (hoverOffset > 5) hoverDirection = -1;
   if (hoverOffset < -5) hoverDirection = 1;
   hoverOffset += hoverDirection * 0.2;
 
-  // Camera follow
+  // Radiating aura animation
+  if (auraGrowing) {
+    auraRadius += 0.5;
+    auraAlpha -= 0.01;
+    if (auraAlpha <= 0.05) auraGrowing = false;
+  } else {
+    auraRadius = radius + 10;
+    auraAlpha = 0.3;
+    auraGrowing = true;
+  }
+
+  // Camera follow logic
   const edgeMargin = 100;
   if (ballX - cameraX < edgeMargin) cameraX = ballX - edgeMargin;
   if (ballX - cameraX > canvas.width - edgeMargin)
@@ -49,7 +62,7 @@ function draw() {
   if (ballY - cameraY > canvas.height - edgeMargin)
     cameraY = ballY - (canvas.height - edgeMargin);
 
-  // Optional background grid
+  // Grid background
   ctx.strokeStyle = "#eee";
   for (let x = 0; x < worldWidth; x += 100) {
     ctx.beginPath();
@@ -64,7 +77,20 @@ function draw() {
     ctx.stroke();
   }
 
-  // Glow aura
+  // Radiating aura
+  ctx.beginPath();
+  ctx.arc(
+    ballX - cameraX,
+    ballY - cameraY + hoverOffset,
+    auraRadius,
+    0,
+    Math.PI * 2
+  );
+  ctx.fillStyle = `rgba(0, 200, 255, ${auraAlpha})`;
+  ctx.fill();
+  ctx.closePath();
+
+  // Base glow aura
   ctx.beginPath();
   ctx.arc(
     ballX - cameraX,
@@ -77,7 +103,7 @@ function draw() {
   ctx.fill();
   ctx.closePath();
 
-  // Ball body
+  // Main body of ARC-7
   ctx.beginPath();
   ctx.arc(
     ballX - cameraX,
@@ -90,7 +116,7 @@ function draw() {
   ctx.fill();
   ctx.closePath();
 
-  // Label
+  // ARC-7 label
   ctx.font = "14px Arial";
   ctx.fillStyle = "black";
   ctx.textAlign = "center";
@@ -101,9 +127,9 @@ function draw() {
   );
 }
 
-setInterval(draw, 16); // ~60 FPS
+setInterval(draw, 16);
 
-// Touch D-pad logic
+// Touch + Mouse control for D-pad
 function handleDirectionStart(dir) {
   moving[dir] = true;
 }
