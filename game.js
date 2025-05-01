@@ -6,54 +6,42 @@ const worldHeight = 2000;
 
 let ballX = 1000;
 let ballY = 1000;
-const radius = 20;
-const speed = 5;
-
-let hoverOffset = 0;
-let hoverDirection = 1;
-
-let auraRadius = radius + 10;
-let auraAlpha = 0.3;
-let auraGrowing = true;
-
 let cameraX = 0;
 let cameraY = 0;
 
-let moving = {
-  up: false,
-  down: false,
-  left: false,
-  right: false,
-};
+const radius = 20;
+const speed = 3;
 
-function updatePosition() {
-  if (moving.up) ballY -= speed;
-  if (moving.down) ballY += speed;
-  if (moving.left) ballX -= speed;
-  if (moving.right) ballX += speed;
-}
+let hoverOffset = 0;
+let hoverDirection = 1;
+let glowPulse = 0;
+let glowDirection = 1;
+
+let moveUp = false;
+let moveDown = false;
+let moveLeft = false;
+let moveRight = false;
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  updatePosition();
 
-  // Hover animation
+  // Update hover
   if (hoverOffset > 5) hoverDirection = -1;
   if (hoverOffset < -5) hoverDirection = 1;
   hoverOffset += hoverDirection * 0.2;
 
-  // Radiating aura animation
-  if (auraGrowing) {
-    auraRadius += 0.5;
-    auraAlpha -= 0.01;
-    if (auraAlpha <= 0.05) auraGrowing = false;
-  } else {
-    auraRadius = radius + 10;
-    auraAlpha = 0.3;
-    auraGrowing = true;
-  }
+  // Update glow pulse
+  if (glowPulse > 10) glowDirection = -1;
+  if (glowPulse < 0) glowDirection = 1;
+  glowPulse += glowDirection * 0.1;
 
-  // Camera follow logic
+  // Move ARC-7
+  if (moveUp) ballY -= speed;
+  if (moveDown) ballY += speed;
+  if (moveLeft) ballX -= speed;
+  if (moveRight) ballX += speed;
+
+  // Camera follows ball
   const edgeMargin = 100;
   if (ballX - cameraX < edgeMargin) cameraX = ballX - edgeMargin;
   if (ballX - cameraX > canvas.width - edgeMargin)
@@ -62,7 +50,7 @@ function draw() {
   if (ballY - cameraY > canvas.height - edgeMargin)
     cameraY = ballY - (canvas.height - edgeMargin);
 
-  // Grid background
+  // Draw grid
   ctx.strokeStyle = "#eee";
   for (let x = 0; x < worldWidth; x += 100) {
     ctx.beginPath();
@@ -77,33 +65,20 @@ function draw() {
     ctx.stroke();
   }
 
-  // Radiating aura
+  // Draw glow
   ctx.beginPath();
   ctx.arc(
     ballX - cameraX,
     ballY - cameraY + hoverOffset,
-    auraRadius,
+    radius + 10 + glowPulse,
     0,
     Math.PI * 2
   );
-  ctx.fillStyle = `rgba(0, 200, 255, ${auraAlpha})`;
+  ctx.fillStyle = "rgba(255, 0, 0, 0.15)";
   ctx.fill();
   ctx.closePath();
 
-  // Base glow aura
-  ctx.beginPath();
-  ctx.arc(
-    ballX - cameraX,
-    ballY - cameraY + hoverOffset,
-    radius + 10,
-    0,
-    Math.PI * 2
-  );
-  ctx.fillStyle = "rgba(0, 200, 255, 0.2)";
-  ctx.fill();
-  ctx.closePath();
-
-  // Main body of ARC-7
+  // Draw ball
   ctx.beginPath();
   ctx.arc(
     ballX - cameraX,
@@ -116,33 +91,37 @@ function draw() {
   ctx.fill();
   ctx.closePath();
 
-  // ARC-7 label
-  ctx.font = "14px Arial";
+  // Label
   ctx.fillStyle = "black";
+  ctx.font = "12px Arial";
   ctx.textAlign = "center";
-  ctx.fillText(
-    "ARC-7",
-    ballX - cameraX,
-    ballY - cameraY + hoverOffset - radius - 10
-  );
+  ctx.fillText("ARC-7", ballX - cameraX, ballY - cameraY + hoverOffset - 25);
 }
 
 setInterval(draw, 16);
 
-// Touch + Mouse control for D-pad
-function handleDirectionStart(dir) {
-  moving[dir] = true;
-}
-
-function handleDirectionStop(dir) {
-  moving[dir] = false;
-}
-
-["up", "down", "left", "right"].forEach((dir) => {
-  const btn = document.getElementById(dir);
-  btn.addEventListener("touchstart", () => handleDirectionStart(dir));
-  btn.addEventListener("touchend", () => handleDirectionStop(dir));
-  btn.addEventListener("mousedown", () => handleDirectionStart(dir));
-  btn.addEventListener("mouseup", () => handleDirectionStop(dir));
-  btn.addEventListener("mouseleave", () => handleDirectionStop(dir));
-});
+// Touch D-pad controls
+document
+  .getElementById("up")
+  .addEventListener("touchstart", () => (moveUp = true));
+document
+  .getElementById("up")
+  .addEventListener("touchend", () => (moveUp = false));
+document
+  .getElementById("down")
+  .addEventListener("touchstart", () => (moveDown = true));
+document
+  .getElementById("down")
+  .addEventListener("touchend", () => (moveDown = false));
+document
+  .getElementById("left")
+  .addEventListener("touchstart", () => (moveLeft = true));
+document
+  .getElementById("left")
+  .addEventListener("touchend", () => (moveLeft = false));
+document
+  .getElementById("right")
+  .addEventListener("touchstart", () => (moveRight = true));
+document
+  .getElementById("right")
+  .addEventListener("touchend", () => (moveRight = false));
