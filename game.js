@@ -1,43 +1,46 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// World size
 const worldWidth = 2000;
 const worldHeight = 2000;
 
-// Game objects and movement
 let ballX = 1000;
 let ballY = 1000;
 const radius = 20;
 const speed = 5;
+
 let hoverOffset = 0;
 let hoverDirection = 1;
 
-// Camera
 let cameraX = 0;
 let cameraY = 0;
 
-// Touch-based movement flags
-let movingUp = false;
-let movingDown = false;
-let movingLeft = false;
-let movingRight = false;
+let moving = {
+  up: false,
+  down: false,
+  left: false,
+  right: false,
+};
+
+// Continuous movement logic
+function updatePosition() {
+  if (moving.up) ballY -= speed;
+  if (moving.down) ballY += speed;
+  if (moving.left) ballX -= speed;
+  if (moving.right) ballX += speed;
+}
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Hover effect
+  updatePosition();
+
+  // Update hover
   if (hoverOffset > 5) hoverDirection = -1;
   if (hoverOffset < -5) hoverDirection = 1;
   hoverOffset += hoverDirection * 0.2;
 
-  // Movement
-  if (movingUp) ballY -= speed;
-  if (movingDown) ballY += speed;
-  if (movingLeft) ballX -= speed;
-  if (movingRight) ballX += speed;
-
-  // Camera tracking
+  // Camera follow
   const edgeMargin = 100;
   if (ballX - cameraX < edgeMargin) cameraX = ballX - edgeMargin;
   if (ballX - cameraX > canvas.width - edgeMargin)
@@ -46,8 +49,8 @@ function draw() {
   if (ballY - cameraY > canvas.height - edgeMargin)
     cameraY = ballY - (canvas.height - edgeMargin);
 
-  // Grid
-  ctx.strokeStyle = "#ccc";
+  // Optional background grid
+  ctx.strokeStyle = "#eee";
   for (let x = 0; x < worldWidth; x += 100) {
     ctx.beginPath();
     ctx.moveTo(x - cameraX, 0 - cameraY);
@@ -61,7 +64,20 @@ function draw() {
     ctx.stroke();
   }
 
-  // Draw ARC-7
+  // Glow aura
+  ctx.beginPath();
+  ctx.arc(
+    ballX - cameraX,
+    ballY - cameraY + hoverOffset,
+    radius + 10,
+    0,
+    Math.PI * 2
+  );
+  ctx.fillStyle = "rgba(0, 200, 255, 0.2)";
+  ctx.fill();
+  ctx.closePath();
+
+  // Ball body
   ctx.beginPath();
   ctx.arc(
     ballX - cameraX,
@@ -74,42 +90,33 @@ function draw() {
   ctx.fill();
   ctx.closePath();
 
+  // Label
+  ctx.font = "14px Arial";
   ctx.fillStyle = "black";
-  ctx.font = "12px Arial";
+  ctx.textAlign = "center";
   ctx.fillText(
     "ARC-7",
-    ballX - cameraX - 18,
-    ballY - cameraY + hoverOffset - 30
+    ballX - cameraX,
+    ballY - cameraY + hoverOffset - radius - 10
   );
 }
 
-setInterval(draw, 16);
+setInterval(draw, 16); // ~60 FPS
 
-// Touch listeners
-document
-  .getElementById("up")
-  .addEventListener("touchstart", () => (movingUp = true));
-document
-  .getElementById("up")
-  .addEventListener("touchend", () => (movingUp = false));
+// Touch D-pad logic
+function handleDirectionStart(dir) {
+  moving[dir] = true;
+}
 
-document
-  .getElementById("down")
-  .addEventListener("touchstart", () => (movingDown = true));
-document
-  .getElementById("down")
-  .addEventListener("touchend", () => (movingDown = false));
+function handleDirectionStop(dir) {
+  moving[dir] = false;
+}
 
-document
-  .getElementById("left")
-  .addEventListener("touchstart", () => (movingLeft = true));
-document
-  .getElementById("left")
-  .addEventListener("touchend", () => (movingLeft = false));
-
-document
-  .getElementById("right")
-  .addEventListener("touchstart", () => (movingRight = true));
-document
-  .getElementById("right")
-  .addEventListener("touchend", () => (movingRight = false));
+["up", "down", "left", "right"].forEach((dir) => {
+  const btn = document.getElementById(dir);
+  btn.addEventListener("touchstart", () => handleDirectionStart(dir));
+  btn.addEventListener("touchend", () => handleDirectionStop(dir));
+  btn.addEventListener("mousedown", () => handleDirectionStart(dir));
+  btn.addEventListener("mouseup", () => handleDirectionStop(dir));
+  btn.addEventListener("mouseleave", () => handleDirectionStop(dir));
+});
