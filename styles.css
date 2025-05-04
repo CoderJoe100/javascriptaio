@@ -1,23 +1,22 @@
 /* styles.css */
-body {
-  margin: 0;
-  font-family: sans-serif;
-  background: #f0f0f0;
-  overflow: hidden;
-}
 
+/* Remove scrollbars and margin */
 body {
   margin: 0;
   overflow: hidden;
   background-color: #000;
+  font-family: 'Segoe UI', sans-serif;
 }
 
+/* Canvas */
 canvas {
   display: block;
   margin: 0 auto;
   background-color: #fff;
+  border: 2px solid #222;
 }
 
+/* D-Pad Layout */
 #dpad {
   position: absolute;
   bottom: 20px;
@@ -26,20 +25,32 @@ canvas {
   display: flex;
   flex-direction: column;
   align-items: center;
+  z-index: 10;
 }
 
+/* Middle row for left/down/right */
 .middle-row {
   display: flex;
   justify-content: center;
 }
 
+/* D-pad buttons */
 button {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   margin: 5px;
-  font-size: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
   background-color: #4da6ff;
-  color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
+  box-shadow: 0 4px #2c84c5;
+  touch-action: none; /* Prevents double-tap zooming on mobile */
+}
+
+/* Button press feedback */
+button:active {
+  box-shadow: 0 2px #1a5e91;
+  transform: translateY(2px);
 }
