@@ -110,23 +110,27 @@ function updatePositions() {
   let targetX, targetY;
 
   if (isMoving) {
-    // Follow behind ARC-7 while moving
-    const offsetDistance = 50;
-    let offsetX = 0;
-    let offsetY = 0;
+    let dirX = 0;
+    let dirY = 0;
 
-    if (moveUp) offsetY = offsetDistance;
-    if (moveDown) offsetY = -offsetDistance;
-    if (moveLeft) offsetX = offsetDistance;
-    if (moveRight) offsetX = -offsetDistance;
+    if (moveLeft) dirX = -1;
+    if (moveRight) dirX = 1;
+    if (moveUp) dirY = -1;
+    if (moveDown) dirY = 1;
 
-    if ((moveLeft || moveRight) && (moveUp || moveDown)) {
-      offsetX *= 0.707;
-      offsetY *= 0.707;
+    // Normalize direction for diagonals
+    if (dirX !== 0 && dirY !== 0) {
+      dirX *= 0.707;
+      dirY *= 0.707;
     }
 
-    targetX = arc7.x + offsetX;
-    targetY = arc7.y + offsetY;
+    // Offset to the side of movement, not center
+    const trailingOffset = 60;
+    const sideOffsetX = -dirY * trailingOffset; // perpendicular offset
+    const sideOffsetY = dirX * trailingOffset;
+
+    targetX = arc7.x + sideOffsetX;
+    targetY = arc7.y + sideOffsetY;
   } else {
     // Stand beside ARC-7 based on last movement
     let sideOffsetX = 0;
@@ -215,3 +219,8 @@ addDirectionalEvents(
   () => (moveRight = true),
   () => (moveRight = false)
 );
+
+// Auto-focus canvas to capture keyboard input
+window.addEventListener("load", () => {
+  canvas.focus();
+});
