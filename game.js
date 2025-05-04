@@ -12,6 +12,7 @@ let arc7 = {
   hoverOffset: 0,
   hoverDirection: 1,
 };
+
 let companion = {
   x: 950,
   y: 1000,
@@ -30,95 +31,10 @@ let moveUp = false,
   moveLeft = false,
   moveRight = false;
 
-const backgroundImage = new Image();
-backgroundImage.src = "zombie.jpg"; // Ensure this image is in your project directory
-
-function updatePositions() {
-  // Move ARC-7 based on input
-  if (moveUp) arc7.y -= speed;
-  if (moveDown) arc7.y += speed;
-  if (moveLeft) arc7.x -= speed;
-  if (moveRight) arc7.x += speed;
-
-  // Define isMoving BEFORE using it!
-  const isMoving = moveUp || moveDown || moveLeft || moveRight;
-
-  let targetX, targetY;
-
-  if (isMoving) {
-    // While moving, companion follows
-    const dx = arc7.x - companion.x;
-    const dy = arc7.y - companion.y;
-    targetX = companion.x + dx * 0.05;
-    targetY = companion.y + dy * 0.05;
-  } else {
-    // While stopped, companion moves beside ARC-7
-    const sideOffsetX = -60;
-    const sideOffsetY = 0;
-    targetX = arc7.x + sideOffsetX;
-    targetY = arc7.y + sideOffsetY;
-  }
-
-  const followSpeed = isMoving ? 0.15 : 0.07;
-  const maxDistance = 100; // Maximum distance companion can fall behind
-
-  let dxFollow = targetX - companion.x;
-  let dyFollow = targetY - companion.y;
-  const distance = Math.hypot(dxFollow, dyFollow);
-
-  if (distance > maxDistance) {
-    // Snap closer if too far
-    const angle = Math.atan2(dyFollow, dxFollow);
-    companion.x = targetX - Math.cos(angle) * maxDistance;
-    companion.y = targetY - Math.sin(angle) * maxDistance;
-  }
-
-  companion.x += dxFollow * followSpeed;
-  companion.y += dyFollow * followSpeed;
-
-  // Hover effect
-  [arc7, companion].forEach((character) => {
-    if (character.hoverOffset > 5) character.hoverDirection = -1;
-    if (character.hoverOffset < -5) character.hoverDirection = 1;
-    character.hoverOffset += character.hoverDirection * 0.2;
-  });
-
-  // Camera follows ARC-7
-  cameraX = arc7.x - canvas.width / 2;
-  cameraY = arc7.y - canvas.height / 2;
-}
-
-function drawCharacter(character) {
-  // Glow effect
-  ctx.beginPath();
-  ctx.arc(
-    character.x - cameraX,
-    character.y - cameraY + character.hoverOffset,
-    character.radius + 10,
-    0,
-    Math.PI * 2
-  );
-  ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
-  ctx.fill();
-  ctx.closePath();
-
-  // Character
-  ctx.beginPath();
-  ctx.arc(
-    character.x - cameraX,
-    character.y - cameraY + character.hoverOffset,
-    character.radius,
-    0,
-    Math.PI * 2
-  );
-  ctx.fillStyle = character.color;
-  ctx.fill();
-  ctx.closePath();
-}
-
+// Draw tile-based background
 function drawBackground() {
   const tileSize = 100;
-  const colors = ["#3ac6a5", "#33b899"]; // Alternating tile colors
+  const colors = ["#3ac6a5", "#33b899"];
 
   const startX = Math.floor(cameraX / tileSize) * tileSize;
   const startY = Math.floor(cameraY / tileSize) * tileSize;
@@ -136,21 +52,108 @@ function drawBackground() {
   }
 }
 
+// Draw ARC-7 and Companion
+function drawCharacter(character) {
+  // Glow effect
+  ctx.beginPath();
+  ctx.arc(
+    character.x - cameraX,
+    character.y - cameraY + character.hoverOffset,
+    character.radius + 10,
+    0,
+    Math.PI * 2
+  );
+  ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+  ctx.fill();
+  ctx.closePath();
+
+  // Main body
+  ctx.beginPath();
+  ctx.arc(
+    character.x - cameraX,
+    character.y - cameraY + character.hoverOffset,
+    character.radius,
+    0,
+    Math.PI * 2
+  );
+  ctx.fillStyle = character.color;
+  ctx.shadowColor = character.color;
+  ctx.shadowBlur = 10;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.closePath();
+}
+
+// Movement and positioning logic
+function updatePositions() {
+  if (moveUp) arc7.y -= speed;
+  if (moveDown) arc7.y += speed;
+  if (moveLeft) arc7.x -= speed;
+  if (moveRight) arc7.x += speed;
+
+  const isMoving = moveUp || moveDown || moveLeft || moveRight;
+
+  let targetX, targetY;
+
+  if (isMoving) {
+    const offsetDistance = 50;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (moveUp) offsetY = offsetDistance;
+    if (moveDown) offsetY = -offsetDistance;
+    if (moveLeft) offsetX = offsetDistance;
+    if (moveRight) offsetX = -offsetDistance;
+
+    // Combine diagonals if moving in two directions
+    if ((moveLeft || moveRight) && (moveUp || moveDown)) {
+      offsetX *= 0.707; // approx. 1/sqrt(2)
+      offsetY *= 0.707;
+    }
+
+    targetX = arc7.x + offsetX;
+    targetY = arc7.y + offsetY;
+  } else {
+    const sideOffsetX = -60;
+    const sideOffsetY = 0;
+    targetX = arc7.x + sideOffsetX;
+    targetY = arc7.y + sideOffsetY;
+  }
+
+  const dx = targetX - companion.x;
+  const dy = targetY - companion.y;
+  const distance = Math.hypot(dx, dy);
+  const moveStep = 2.2;
+
+  if (distance > 1) {
+    const angle = Math.atan2(dy, dx);
+    companion.x += Math.cos(angle) * Math.min(moveStep, distance);
+    companion.y += Math.sin(angle) * Math.min(moveStep, distance);
+  }
+
+  // Hover animation
+  [arc7, companion].forEach((character) => {
+    if (character.hoverOffset > 5) character.hoverDirection = -1;
+    if (character.hoverOffset < -5) character.hoverDirection = 1;
+    character.hoverOffset += character.hoverDirection * 0.2;
+  });
+
+  // Camera centers on ARC-7
+  cameraX = arc7.x - canvas.width / 2;
+  cameraY = arc7.y - canvas.height / 2;
+}
+
+// Main draw loop
 function draw() {
   updatePositions();
-
-  // Draw background
-  //ctx.drawImage(backgroundImage, -cameraX, -cameraY, worldWidth, worldHeight);
-  drawBackground(); // Now uses custom tile grid
-
-  // Draw characters
+  drawBackground();
   drawCharacter(companion);
   drawCharacter(arc7);
 }
 
 setInterval(draw, 16);
 
-// Touch + Mouse Controls for D-pad
+// Touch + Mouse input for D-pad
 function addDirectionalEvents(id, startCallback, endCallback) {
   const el = document.getElementById(id);
   el.addEventListener("touchstart", startCallback);
@@ -160,7 +163,23 @@ function addDirectionalEvents(id, startCallback, endCallback) {
   el.addEventListener("mouseleave", endCallback);
 }
 
-addDirectionalEvents("up", () => moveUp = true, () => moveUp = false);
-addDirectionalEvents("down", () => moveDown = true, () => moveDown = false);
-addDirectionalEvents("left", () => moveLeft = true, () => moveLeft = false);
-addDirectionalEvents("right", () => moveRight = true, () => moveRight = false);
+addDirectionalEvents(
+  "up",
+  () => (moveUp = true),
+  () => (moveUp = false)
+);
+addDirectionalEvents(
+  "down",
+  () => (moveDown = true),
+  () => (moveDown = false)
+);
+addDirectionalEvents(
+  "left",
+  () => (moveLeft = true),
+  () => (moveLeft = false)
+);
+addDirectionalEvents(
+  "right",
+  () => (moveRight = true),
+  () => (moveRight = false)
+);
