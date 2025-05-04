@@ -1,121 +1,166 @@
-// game.js
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 const worldWidth = 2000;
 const worldHeight = 2000;
 
-let ballX = 1000;
-let ballY = 1000;
-const radius = 20;
-const speed = 2;
-
-let hoverOffset = 0;
-let hoverDirection = 1;
+let arc7 = {
+  x: 1000,
+  y: 1000,
+  radius: 20,
+  color: "red",
+  hoverOffset: 0,
+  hoverDirection: 1,
+};
+let companion = {
+  x: 950,
+  y: 1000,
+  radius: 15,
+  color: "blue",
+  hoverOffset: 0,
+  hoverDirection: 1,
+};
 
 let cameraX = 0;
 let cameraY = 0;
+const speed = 2;
 
 let moveUp = false,
   moveDown = false,
   moveLeft = false,
   moveRight = false;
 
+const backgroundImage = new Image();
+backgroundImage.src = "zombie.jpg"; // Ensure this image is in your project directory
+
+function updatePositions() {
+  // Move ARC-7 based on input
+  if (moveUp) arc7.y -= speed;
+  if (moveDown) arc7.y += speed;
+  if (moveLeft) arc7.x -= speed;
+  if (moveRight) arc7.x += speed;
+
+  // Define isMoving BEFORE using it!
+  const isMoving = moveUp || moveDown || moveLeft || moveRight;
+
+  let targetX, targetY;
+
+  if (isMoving) {
+    // While moving, companion follows
+    const dx = arc7.x - companion.x;
+    const dy = arc7.y - companion.y;
+    targetX = companion.x + dx * 0.05;
+    targetY = companion.y + dy * 0.05;
+  } else {
+    // While stopped, companion moves beside ARC-7
+    const sideOffsetX = -60;
+    const sideOffsetY = 0;
+    targetX = arc7.x + sideOffsetX;
+    targetY = arc7.y + sideOffsetY;
+  }
+
+  const followSpeed = isMoving ? 0.15 : 0.07;
+  const maxDistance = 100; // Maximum distance companion can fall behind
+
+  let dxFollow = targetX - companion.x;
+  let dyFollow = targetY - companion.y;
+  const distance = Math.hypot(dxFollow, dyFollow);
+
+  if (distance > maxDistance) {
+    // Snap closer if too far
+    const angle = Math.atan2(dyFollow, dxFollow);
+    companion.x = targetX - Math.cos(angle) * maxDistance;
+    companion.y = targetY - Math.sin(angle) * maxDistance;
+  }
+
+  companion.x += dxFollow * followSpeed;
+  companion.y += dyFollow * followSpeed;
+
+  // Hover effect
+  [arc7, companion].forEach((character) => {
+    if (character.hoverOffset > 5) character.hoverDirection = -1;
+    if (character.hoverOffset < -5) character.hoverDirection = 1;
+    character.hoverOffset += character.hoverDirection * 0.2;
+  });
+
+  // Camera follows ARC-7
+  cameraX = arc7.x - canvas.width / 2;
+  cameraY = arc7.y - canvas.height / 2;
+}
+
+function drawCharacter(character) {
+  // Glow effect
+  ctx.beginPath();
+  ctx.arc(
+    character.x - cameraX,
+    character.y - cameraY + character.hoverOffset,
+    character.radius + 10,
+    0,
+    Math.PI * 2
+  );
+  ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+  ctx.fill();
+  ctx.closePath();
+
+  // Character
+  ctx.beginPath();
+  ctx.arc(
+    character.x - cameraX,
+    character.y - cameraY + character.hoverOffset,
+    character.radius,
+    0,
+    Math.PI * 2
+  );
+  ctx.fillStyle = character.color;
+  ctx.fill();
+  ctx.closePath();
+}
+
+function drawBackground() {
+  const tileSize = 100;
+  const colors = ["#3ac6a5", "#33b899"]; // Alternating tile colors
+
+  const startX = Math.floor(cameraX / tileSize) * tileSize;
+  const startY = Math.floor(cameraY / tileSize) * tileSize;
+  const endX = cameraX + canvas.width;
+  const endY = cameraY + canvas.height;
+
+  for (let y = startY; y < endY; y += tileSize) {
+    for (let x = startX; x < endX; x += tileSize) {
+      const col = Math.floor(x / tileSize);
+      const row = Math.floor(y / tileSize);
+      const colorIndex = (col + row) % 2;
+      ctx.fillStyle = colors[colorIndex];
+      ctx.fillRect(x - cameraX, y - cameraY, tileSize, tileSize);
+    }
+  }
+}
+
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  updatePositions();
 
-  // Update hover
-  if (hoverOffset > 5) hoverDirection = -1;
-  if (hoverOffset < -5) hoverDirection = 1;
-  hoverOffset += hoverDirection * 0.2;
+  // Draw background
+  //ctx.drawImage(backgroundImage, -cameraX, -cameraY, worldWidth, worldHeight);
+  drawBackground(); // Now uses custom tile grid
 
-  // Move ARC-7
-  if (moveUp) ballY -= speed;
-  if (moveDown) ballY += speed;
-  if (moveLeft) ballX -= speed;
-  if (moveRight) ballX += speed;
-
-  // Camera follow
-  cameraX = ballX - canvas.width / 2;
-  cameraY = ballY - canvas.height / 2;
-
-  // Background grid
-  ctx.strokeStyle = "#ddd";
-  for (let x = 0; x < worldWidth; x += 100) {
-    ctx.beginPath();
-    ctx.moveTo(x - cameraX, 0 - cameraY);
-    ctx.lineTo(x - cameraX, worldHeight - cameraY);
-    ctx.stroke();
-  }
-  for (let y = 0; y < worldHeight; y += 100) {
-    ctx.beginPath();
-    ctx.moveTo(0 - cameraX, y - cameraY);
-    ctx.lineTo(worldWidth - cameraX, y - cameraY);
-    ctx.stroke();
-  }
-
-  // Glow
-  ctx.beginPath();
-  ctx.arc(
-    ballX - cameraX,
-    ballY - cameraY + hoverOffset,
-    radius + 12,
-    0,
-    Math.PI * 2
-  );
-  ctx.fillStyle = "rgba(0, 180, 255, 0.2)";
-  ctx.fill();
-  ctx.closePath();
-
-  // ARC-7
-  ctx.beginPath();
-  ctx.arc(
-    ballX - cameraX,
-    ballY - cameraY + hoverOffset,
-    radius,
-    0,
-    Math.PI * 2
-  );
-  ctx.fillStyle = "red";
-  ctx.fill();
-  ctx.closePath();
-
-  ctx.fillStyle = "black";
-  ctx.font = "14px sans-serif";
-  ctx.fillText(
-    "ARC-7",
-    ballX - cameraX - 20,
-    ballY - cameraY + hoverOffset - 25
-  );
+  // Draw characters
+  drawCharacter(companion);
+  drawCharacter(arc7);
 }
 
 setInterval(draw, 16);
 
-// Touch controls
-document
-  .getElementById("up")
-  .addEventListener("touchstart", () => (moveUp = true));
-document
-  .getElementById("up")
-  .addEventListener("touchend", () => (moveUp = false));
+// Touch + Mouse Controls for D-pad
+function addDirectionalEvents(id, startCallback, endCallback) {
+  const el = document.getElementById(id);
+  el.addEventListener("touchstart", startCallback);
+  el.addEventListener("mousedown", startCallback);
+  el.addEventListener("touchend", endCallback);
+  el.addEventListener("mouseup", endCallback);
+  el.addEventListener("mouseleave", endCallback);
+}
 
-document
-  .getElementById("down")
-  .addEventListener("touchstart", () => (moveDown = true));
-document
-  .getElementById("down")
-  .addEventListener("touchend", () => (moveDown = false));
-
-document
-  .getElementById("left")
-  .addEventListener("touchstart", () => (moveLeft = true));
-document
-  .getElementById("left")
-  .addEventListener("touchend", () => (moveLeft = false));
-
-document
-  .getElementById("right")
-  .addEventListener("touchstart", () => (moveRight = true));
-document
-  .getElementById("right")
-  .addEventListener("touchend", () => (moveRight = false));
+addDirectionalEvents("up", () => moveUp = true, () => moveUp = false);
+addDirectionalEvents("down", () => moveDown = true, () => moveDown = false);
+addDirectionalEvents("left", () => moveLeft = true, () => moveLeft = false);
+addDirectionalEvents("right", () => moveRight = true, () => moveRight = false);
