@@ -1,43 +1,30 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// Allow keyboard focus
-canvas.setAttribute("tabindex", "0");
-canvas.focus();
-
 const worldWidth = 2000;
 const worldHeight = 2000;
-const speed = 2;
+
+const arc7 = { x: 1000, y: 1000, radius: 20, color: "crimson" };
+const companion = { x: 970, y: 980, radius: 10, glow: 0 };
 
 let cameraX = 0;
 let cameraY = 0;
+const speed = 3;
 
 let moveUp = false,
   moveDown = false,
   moveLeft = false,
   moveRight = false;
 
-let arc7 = { x: 1000, y: 1000, radius: 20, hoverOffset: 0, hoverDirection: 1 };
-let companion = {
-  x: 960,
-  y: 1000,
-  radius: 12,
-  hoverOffset: 0,
-  hoverDirection: 1,
-};
+const backgroundImage = new Image();
+backgroundImage.src = "ancient_ruins.jpg"; // Make sure this image is in your folder
 
-// Background placeholder
-function drawBackground() {
-  ctx.fillStyle = "#1a1a1a";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-}
-
-// Hovering motion
-function updateHover(character) {
-  if (character.hoverOffset > 5) character.hoverDirection = -1;
-  if (character.hoverOffset < -5) character.hoverDirection = 1;
-  character.hoverOffset += character.hoverDirection * 0.3;
-}
+const particles = Array.from({ length: 50 }, () => ({
+  x: Math.random() * worldWidth,
+  y: Math.random() * worldHeight,
+  size: Math.random() * 2 + 1,
+  speed: Math.random() * 0.3 + 0.1,
+}));
 
 function updatePositions() {
   if (moveUp) arc7.y -= speed;
@@ -45,44 +32,53 @@ function updatePositions() {
   if (moveLeft) arc7.x -= speed;
   if (moveRight) arc7.x += speed;
 
-  cameraX = arc7.x - canvas.width / 2;
-  cameraY = arc7.y - canvas.height / 2;
-
-  // Companion moves to ARC-7's side
-  let targetX = arc7.x - 40;
-  let targetY = arc7.y - 40;
-  companion.x += (targetX - companion.x) * 0.05;
-  companion.y += (targetY - companion.y) * 0.05;
-
-  updateHover(arc7);
-  updateHover(companion);
+  // Companion tracks to ARC-7's left side
+  companion.x += (arc7.x - 50 - companion.x) * 0.05;
+  companion.y += (arc7.y - companion.y) * 0.05;
 }
 
 function drawCharacter(character, color) {
-  const x = character.x - cameraX;
-  const y = character.y - cameraY + character.hoverOffset;
-
   ctx.beginPath();
-  ctx.arc(x, y, character.radius + 8, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(255,255,255,0.05)";
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.arc(x, y, character.radius, 0, Math.PI * 2);
+  ctx.arc(
+    character.x - cameraX,
+    character.y - cameraY,
+    character.radius,
+    0,
+    Math.PI * 2
+  );
   ctx.fillStyle = color;
+  ctx.shadowColor = "white";
+  ctx.shadowBlur = character === companion ? 20 : 0;
   ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function drawParticles() {
+  ctx.fillStyle = "rgba(255,255,255,0.3)";
+  particles.forEach((p) => {
+    p.y -= p.speed;
+    if (p.y < 0) p.y = worldHeight;
+    ctx.beginPath();
+    ctx.arc(p.x - cameraX, p.y - cameraY, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  });
 }
 
 function draw() {
   updatePositions();
-  drawBackground();
-  drawCharacter(companion, "cyan");
+  cameraX = arc7.x - canvas.width / 2;
+  cameraY = arc7.y - canvas.height / 2;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(backgroundImage, -cameraX, -cameraY, worldWidth, worldHeight);
+  drawParticles();
+  drawCharacter(companion, "aqua");
   drawCharacter(arc7, "crimson");
 }
 
 setInterval(draw, 16);
 
-// Touch + mouse D-pad handling
+// Touch + Mouse input for D-pad
 function setupDpad(id, pressFn, releaseFn) {
   const el = document.getElementById(id);
   el.addEventListener("touchstart", (e) => {
@@ -128,17 +124,17 @@ setupDpad(
   () => (moveRight = false)
 );
 
-// Keyboard support
+// Keyboard input
 document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowUp" || e.key === "w") moveUp = true;
-  if (e.key === "ArrowDown" || e.key === "s") moveDown = true;
-  if (e.key === "ArrowLeft" || e.key === "a") moveLeft = true;
-  if (e.key === "ArrowRight" || e.key === "d") moveRight = true;
+  if (e.key === "ArrowUp") moveUp = true;
+  if (e.key === "ArrowDown") moveDown = true;
+  if (e.key === "ArrowLeft") moveLeft = true;
+  if (e.key === "ArrowRight") moveRight = true;
 });
 
 document.addEventListener("keyup", (e) => {
-  if (e.key === "ArrowUp" || e.key === "w") moveUp = false;
-  if (e.key === "ArrowDown" || e.key === "s") moveDown = false;
-  if (e.key === "ArrowLeft" || e.key === "a") moveLeft = false;
-  if (e.key === "ArrowRight" || e.key === "d") moveRight = false;
+  if (e.key === "ArrowUp") moveUp = false;
+  if (e.key === "ArrowDown") moveDown = false;
+  if (e.key === "ArrowLeft") moveLeft = false;
+  if (e.key === "ArrowRight") moveRight = false;
 });
