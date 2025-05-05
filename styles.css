@@ -54,3 +54,8 @@ button:active {
   box-shadow: 0 2px #1a5e91;
   transform: translateY(2px);
 }
+
+button, canvas, #dpad {
+  touch-action: none;
+  user-select: none;
+}
